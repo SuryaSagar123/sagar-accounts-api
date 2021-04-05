@@ -35,13 +35,11 @@
 					      <muleVersion>4.3.0</muleVersion>
 					      <username>ram5624</username>
 					      <password>@Ra0805217147</password>
-					      <applicationName>sagar-accounts-sapi</applicationName>
+					      <applicationName>sagar-accounts</applicationName>
 					      <environment>Sandbox</environment>
 					      <workers>1</workers>
 					      <workerType>MICRO</workerType>
-					      <properties>
-					        <http.port>8081</http.port>
-					      </properties>
+					     <objectStoreV2>true</objectStoreV2>
 					 </cloudHubDeployment>
 				</configuration>
 			</plugin>
