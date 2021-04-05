@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="406679aa-eff3-4edd-b1d2-6a350bdb01f4" >
+		<salesforce:basic-connection username="valuebrainstechnologies@gmail.com" password="valuebrains@123" securityToken="QYLx4bxKNPtVmawlk8ptR2dbI" />
+	</salesforce:sfdc-config>
+	<flow name="get-accounts-flow" doc:id="c2a4ced3-8937-444e-9b2d-b196d4f41500" >
+		<logger level="INFO" doc:name="Logger" doc:id="cb1f0d03-ca8e-4a13-81f1-735d151b41b6" message='"Get Accounts : Started"'/>
+		<choice doc:name="Choice" doc:id="8c122403-3944-4373-ad7f-57cfe5bf4b47" >
+			<when expression="#[isEmpty(attributes.queryParams.'Id')]">
+				<salesforce:query doc:name="Query" doc:id="9d3da2c8-0c9e-464b-9331-338bd17e21ef" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[SELECT Id,Name,Type,BillingStreet from Account]]></salesforce:salesforce-query>
+		</salesforce:query>
+			</when>
+			<otherwise >
+				<salesforce:query doc:name="Query" doc:id="237b7653-7040-4e86-b095-1303d2a526da" config-ref="Salesforce_Config" >
+					<salesforce:salesforce-query ><![CDATA[SELECT Id,Name,Type,BillingStreet from Account where Id = ':id']]></salesforce:salesforce-query>
+					<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"id" : attributes.queryParams.'Id'
+}]]]></salesforce:parameters>
+				</salesforce:query>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="be7e2501-6a47-4d39-b90d-bb6d7bd48b03" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="create-accounts-flow" doc:id="b8e143a0-bbcf-4d48-b99c-1c22c48c1aa5" >
+		<logger level="INFO" doc:name="Logger" doc:id="cb88088a-8757-4d03-ae5e-dcc7aec8c1aa" message="Create Accounts : Started"/>
+		<ee:transform doc:name="Transform Message" doc:id="8402de6a-e678-4020-83c7-e3b4fd63abe5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+ [{
+        "Type": payload."Type",
+        "BillingStreet": payload.BillingStreet,
+        //"Id": "0015g00000AwHZXAA3",
+        "type": payload."type",
+        "Name": payload."Name",
+        "BillingCountry": payload."BillingCountry"
+    }
+    
+    ]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create type="Account" doc:name="Create" doc:id="9a18bb59-3d44-495a-99ec-041451bd77de" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="19d15391-b87b-42e7-be3c-93732416d793" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="1db3fa86-361b-453e-af8b-e96cfd0a224e" message="out : #[payload]"/>
+	</flow>
+</mule>
